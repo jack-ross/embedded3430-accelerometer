@@ -4,5 +4,5 @@
 # no object files or binaries
 *.o
 *.elf
-.DS_Store
-.ccsproject
+*.DS_Store
+*.ccsproject
