@@ -1,5 +1,7 @@
 #include <msp430.h>
 #include "globals.h"
+#include "LEDDriver.h"
+#include "LED.h"
 
 // Function Prototypes
 void ConfigureClockModule();
@@ -15,8 +17,11 @@ void main(void)
     SetLEDState(LED2,OFF);
     InitializeLEDPortPins();
 
+    startLEDDisplay();
+
 //	_BIS_SR(GIE);		// interrupts enabled
 
+}
 
 void ConfigureClockModule()
 {
