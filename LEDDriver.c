@@ -10,9 +10,14 @@
 #include "LEDDriver.h"
 #include "LED.h"
 
+unsigned char LEDIntensities[8];
+// division of pwm (0 to 20) each is 1 ms
+unsigned char pwmCurrentDivision;
+
+
 void startLEDDisplay(void) {
 	ConfigureLEDDisplay();
-	setDisplay(0x80);
+	setDisplay(0x40);
 }
 
 
@@ -25,6 +30,69 @@ void ConfigureLEDDisplay(void) {
 
 	// set blank low to enable LEDs
 	P1OUT &= ~BLANK;
+
+	// set all LEDs to full brightness
+	unsigned char i;
+	for (i = 0; i < 8; ++i)
+	{
+		setIntensity(i, 2*i);
+	}
+}
+
+/** 
+ *	Set LED Intensity
+ *	
+ *	Set 1 of the 8 LEDs to an intensity between
+ *	0% and 100% in divisions of 5%
+ *	@param LEDNumber the (0 to 7) of the LED to set where
+ *					 0 is Northern most LED, 1 is NE, 2 is E...
+ *	@param intensity is 0 to 20 where 0 = 0% (off), 15 = 75%, 20 = 100%
+ *
+ */
+
+void setIntensity(unsigned char LEDNumber, unsigned char intensity) {
+	if (intensity < 0) {
+		LEDIntensities[LEDNumber] = 0;
+		return;
+	}
+	if (intensity > 20) {
+		LEDIntensities[LEDNumber] = 20;
+		return;
+	}
+
+	LEDIntensities[LEDNumber] = intensity;
+}
+
+/**
+ *	Control LED brightness
+ *
+ *	Controll each LED's brightness my sending proper byte array
+ * 	LED PWM period is 20 ms 
+ * 	LEDs are turned of at LEDIntensity[i]*2 (ms)
+ * 	i.e if LED3 is 40% and all others are off, 0010 0000 would be sent 
+ * 	from 0 <= g100nsTimer < 8 and 0000 0000 from 8 <= g100nsTimer <= 20
+ */
+
+void ledPWM() {
+
+	// data to send indicating LED status for all 8 LEDs
+	// i.e 0xF0 would turn on the North LED
+	unsigned char data = 0x00;
+
+	// if LED intensity 
+	unsigned char i;
+	for (i = 0; i < 8; ++i)
+	{
+		if (pwmCurrentDivision < LEDIntensities[i])
+		{
+			data |= 0x1 << i;
+		}
+	}
+
+	pwmCurrentDivision++;
+	if (pwmCurrentDivision == 20) pwmCurrentDivision = 0;
+
+	setDisplay(data);
 }
 
 void setDisplay(unsigned char byte_value) {
