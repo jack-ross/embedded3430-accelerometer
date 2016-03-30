@@ -4,6 +4,7 @@
 #include "LED.h"
 #include "debounce.h"
 #include "ADC.h"
+#include "timerA.h"
 // Function Prototypes
 void ConfigureClockModule();
 
@@ -33,6 +34,8 @@ void main(void)
     InitializeLEDPortPins();
 
     startLEDDisplay();
+
+    ConfigureTimerA();
 
     _BIS_SR(GIE);		// interrupts enabled
 
@@ -69,33 +72,40 @@ void InitializeGlobalVariables(void)
 
 //unsigned int samples[3][8];
 
+void accelerometerCheck() {
+	if(counter==8)
+		_nop();
+	else
+		++counter;
+
+	int temp;
+	//take sample
+	temp = getADCConversion(1);
+
+	//filter (also stores data)
+	filter(1, temp);
+
+	//enable conversion and start next conversion
+	ADC10CTL0 |= ENC | ADC10SC;
+}
+
 void ManageSoftwareTimers(void)
 {
-	int temp;
 
 	if(g1msTimeout != 0){
 		g1msTimeout--;
 		g1msTimer++;
+		ledPWM();
 	}
 
 	//500 Hz sampling
 	if(g1msTimer & 0x1 == 0){
 		TURN_ON_LED2;
 	}
-		if(counter==8)
-			_nop();
-		else
-			++counter;
-		//take sample
-		temp = getADCConversion(1);
 
-		//filter (also stores data)
-		filter(1, temp);
+	//accelerometerCheck();
 
-		//enable conversion and start next conversion
-		ADC10CTL0 |= ENC | ADC10SC;
-
-		TURN_OFF_LED2;
+	TURN_OFF_LED2;
 
 
 
