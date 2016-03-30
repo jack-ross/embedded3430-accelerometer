@@ -12,7 +12,7 @@
 
 void startLEDDisplay(void) {
 	ConfigureLEDDisplay();
-	setDisplay(0xFF);
+	setDisplay(0x80);
 }
 
 

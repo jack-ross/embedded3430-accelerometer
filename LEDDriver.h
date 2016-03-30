@@ -5,8 +5,8 @@
  *      Author: jross_000
  */
 
-#ifndef LEDDRIVER_H_
-#define LEDDRIVER_H_
+#ifndef ACCELEROMETER1_LEDDRIVER_H_
+#define ACCELEROMETER1_LEDDRIVER_H_
 
 
 #define SCLK BIT5 	// P1.5
@@ -16,4 +16,4 @@
 
 void startLEDDisplay(void);
 
-#endif /* LEDDRIVER_H_ */
+#endif /* ACCELEROMETER1_LEDDRIVER_H_ */

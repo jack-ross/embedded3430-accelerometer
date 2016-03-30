@@ -5,6 +5,8 @@
 *.o
 *.elf
 *.DS_Store
-*.ccsproject
 
 Debug/
+.config/
+.launches/
+.xdchelp
