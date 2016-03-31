@@ -35,6 +35,7 @@ void main(void)
     SetLEDState(LED1,OFF);
     SetLEDState(LED2,OFF);
     InitializeLEDPortPins();
+    InitializePushButtonSwitchPins();
 
     startLEDDisplay();
 
