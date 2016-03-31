@@ -28,14 +28,15 @@ void main(void)
     ConfigureClockModule();
     InitializeGlobalVariables();
 
+    ConfigureTimerA();
+    ConfigureADC();
+
     // Initialization of hardware.
     SetLEDState(LED1,OFF);
     SetLEDState(LED2,OFF);
     InitializeLEDPortPins();
 
     startLEDDisplay();
-
-    ConfigureTimerA();
 
     _BIS_SR(GIE);		// interrupts enabled
 
@@ -59,7 +60,6 @@ void InitializeGlobalVariables(void)
 {
 	g1msTimeout = 0;
 	g1msTimer = 0;
-
 	InitializeSwitch(&CalibrateButton,(char *) &P1IN,(unsigned char) BIT3);
 
 	counter =0;
@@ -69,8 +69,6 @@ void InitializeGlobalVariables(void)
 		for(i = 0; i<8;++i)
 			samples[j][i] = 0;
 }
-
-//unsigned int samples[3][8];
 
 void accelerometerCheck() {
 	if(counter==8)
@@ -89,30 +87,25 @@ void accelerometerCheck() {
 	ADC10CTL0 |= ENC | ADC10SC;
 }
 
+//unsigned int samples[3][8];
+unsigned int g2msTimer;
 void ManageSoftwareTimers(void)
 {
+	int temp;
 
 	if(g1msTimeout != 0){
 		g1msTimeout--;
 		g1msTimer++;
-		ledPWM();
+		ledPWM();		
 	}
-
-	//500 Hz sampling
-	if(g1msTimer & 0x1 == 0){
-		TURN_ON_LED2;
-	}
-
-	//accelerometerCheck();
-
-	TURN_OFF_LED2;
-
-
+	
+	TOGGLE_LED2;
+	temp = getADCConversion(1);
 
 	//0.5 s interrupt | wrap around at 500
 	if(g1msTimer == 500){
 		g1msTimer = 0;
-		TOGGLE_LED2;
+		//TOGGLE_LED2;
 	}
 
 }
