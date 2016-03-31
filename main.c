@@ -70,7 +70,6 @@ void InitializeGlobalVariables(void)
 			samples[j][i] = 0;
 }
 
-
 void accelerometerCheck() {
 	if(counter==8)
 		_nop();
@@ -87,7 +86,6 @@ void accelerometerCheck() {
 	//enable conversion and start next conversion
 	ADC10CTL0 |= ENC | ADC10SC;
 }
-
 
 //unsigned int samples[3][8];
 unsigned int g2msTimer;
