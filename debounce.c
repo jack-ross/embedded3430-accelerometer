@@ -26,7 +26,6 @@ SwitchStatus GetSwitch(SwitchDefine *Switch)
 	return High;
 }
 
-extern int g1msTimer;
 int startTime,stopTime, elapsedTime;
 
 bool Debouncer(SwitchDefine *Switch)

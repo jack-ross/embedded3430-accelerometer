@@ -2,6 +2,7 @@
 #define FSM_DEBOUNCE_H_
 
 #include <msp430.h>
+#include "globals.h"
 
 // Definitions for debounce Times for the P1.3 button (ms)
 #define HIGH_THRESHOLD 10
@@ -33,7 +34,7 @@ SwitchStatus GetSwitch(SwitchDefine *Switch);
 
 //This function debounces a switch input
 // returns 1 if switch was pressed
-short Debouncer(SwitchDefine *Switch);
+bool Debouncer(SwitchDefine *Switch);
 
 #define ENABLE_PUSH_INTERRUPT	P1IE |= BIT3;
 #define SET_RISING_EDGE			P1IES |= BIT3;
