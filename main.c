@@ -35,6 +35,7 @@ void main(void)
     SetLEDState(LED1,OFF);
     SetLEDState(LED2,OFF);
     InitializeLEDPortPins();
+    InitializePushButtonSwitchPins();
 
     startLEDDisplay();
 
@@ -44,6 +45,9 @@ void main(void)
 	while(1) {
 		ManageSoftwareTimers();
 
+		if (Debouncer(&CalibrateButton) == true) {
+			// button was pushed
+		}
 	}
 }
 
