@@ -70,6 +70,25 @@ void InitializeGlobalVariables(void)
 			samples[j][i] = 0;
 }
 
+
+void accelerometerCheck() {
+	if(counter==8)
+		_nop();
+	else
+		++counter;
+
+	int temp;
+	//take sample
+	temp = getADCConversion(1);
+
+	//filter (also stores data)
+	filter(1, temp);
+
+	//enable conversion and start next conversion
+	ADC10CTL0 |= ENC | ADC10SC;
+}
+
+
 //unsigned int samples[3][8];
 unsigned int g2msTimer;
 void ManageSoftwareTimers(void)
@@ -79,29 +98,11 @@ void ManageSoftwareTimers(void)
 	if(g1msTimeout != 0){
 		g1msTimeout--;
 		g1msTimer++;
-
+		ledPWM();		
 	}
-
-	//500 Hz sampling
-	//if(g1msTimer & 0x1 == 1){
-		TOGGLE_LED2;
-
-		//if(counter==8)
-//			_nop();
-//		else
-//			++counter;
-		//take sample
-		temp = getADCConversion(1);
-
-		//filter (also stores data)
-		//filter(1, temp);
-
-		//enable conversion and start next conversion
-//		ADC10CTL0 |= ENC | ADC10SC;
-
-//		TURN_OFF_LED2;
-
-
+	
+	TOGGLE_LED2;
+	temp = getADCConversion(1);
 
 	//0.5 s interrupt | wrap around at 500
 	if(g1msTimer == 500){
