@@ -8,30 +8,10 @@ int curSampleIndex =0;
 
 void ConfigureADC(void)
 {
-	/* ADC10 Control register 1
-	 * INCH_0 = choose analog input A0 (X)
-	 *
-	 * ADC10DIV_3 = divide ADC clock by 4 (for temperature sensor)
-	 */
-	ADC10CTL1 = (INCH_0 | ADC10DIV_7);
-	ADC10AE0 |= BIT0; 	// Enable ADC10 A7
-
-	/* ADC10 Control register 0
-	 * SREF_0: Choose Vcc reference for analog inputs
-	 * SREF_1: Choose 1.5V reference for temperature sensor
-	 *
-	 * ADC10SHT_3 = 64 × ADC10CLKs (for temperature sensor)
-	 */
-
-	ADC10CTL0 = (SREF_0 | ADC10SHT_3 | ADC10ON);
-
-
-	_delay_cycles(1000);			// Wait for the ADC to adjust and stabilize
-	ADC10CTL0 |=  (ENC | ADC10SC);	// Enable and begin sampling and conversion
-
-
-	P1DIR &= ~ BIT0;
-	P1SEL |= BIT0;
+	ADC10CTL1 = INCH_2 + CONSEQ_3;            // A2/A1/A0, repeat multi channel
+	ADC10CTL0 = ADC10SHT_2 + MSC + ADC10ON + ADC10IE;
+	ADC10AE0 = (BIT0 + BIT1 + BIT2);          // P1.0,1, 2 Analog enable
+	ADC10DTC1 = 0x20;                         // number of conversions
 
 }
 
@@ -41,35 +21,32 @@ void ConfigureADC(void)
  * 1 - Y
  * 2 - Z
  */
+volatile unsigned int sample[3][8];
+
 unsigned int getADCConversion(int analogInput){
 
 	int ADCReading = 12345;
-	//ADC10CTL0 &=  ~ENC;
 
-	/*switch(analogInput){
-			case 0:
-				ADC10AE0 |= ADC10_A0_BIT;
-				break;
-			case 1:
-				ADC10AE0 |= ADC10_A1_BIT;
-				break;
-			case 2:
-				ADC10AE0 |= ADC10_A2_BIT;
-				break;
-			default:
-				_nop();//ADC10AE0 |= ADC10_A0_BIT;
-	}
-*/
-	//ADC10CTL0 |= ENC;
-	//wait until the conversion is done
-	while(ADC10CTL1 & BUSY);
-	//read the register
-	ADCReading=ADC10MEM;
+	ADC10CTL0 &= ~ENC;
+	while (ADC10CTL1 & BUSY);               // Wait if ADC10 core is active
+    ADC10SA = (int) &(samples);        // Data buffer start
+	ADC10CTL0 |= ENC + ADC10SC;             // Sampling and conversion ready
+    __bis_SR_register(CPUOFF + GIE);        // LPM0, ADC10_ISR will force exit
 
-	//Turn off conversion
-	ADC10CTL0&=~ENC;
+    _NOP();                                 // space for debugger
+    _NOP();                                 // Set Breakpoint here to read ADC
+
 	return ADCReading;
 }
+
+
+// ADC10 interrupt service routine
+#pragma vector=ADC10_VECTOR
+__interrupt void ADC10_ISR (void)
+{
+  __bic_SR_register_on_exit(CPUOFF);        // Clear CPUOFF bit from 0(SR)
+}
+
 
 void filter(int analogInput, unsigned int ADCVal){
 	//TURN_ON_LED1;
