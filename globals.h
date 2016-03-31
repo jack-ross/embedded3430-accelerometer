@@ -25,5 +25,6 @@ extern int CoordinateX, CoordinateXMax, CoordinateXMin, CoordinateX0;
 extern int CoordinateY, CoordinateYMax, CoordinateYMin, CoordinateY0;
 extern int CoordinateZ, CoordinateZMax, CoordinateZMin, CoordinateZ0;
 
+typedef enum { false, true } bool;
 
 #endif /* ACCELEROMETER1_GLOBALS_H_ */

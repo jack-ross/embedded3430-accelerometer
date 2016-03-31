@@ -32,13 +32,14 @@ void InitializeSwitch(SwitchDefine *Switch,char *SwitchPort,unsigned char Switch
 SwitchStatus GetSwitch(SwitchDefine *Switch);
 
 //This function debounces a switch input
-SwitchStatus Debouncer(SwitchDefine *Switch);
+// returns 1 if switch was pressed
+short Debouncer(SwitchDefine *Switch);
 
 #define ENABLE_PUSH_INTERRUPT	P1IE |= BIT3;
 #define SET_RISING_EDGE			P1IES |= BIT3;
 #define RESET_PUSH_FLAG			P1IFG &= ~BIT3;
 #define ENABLE_PULLUP			P1REN |= BIT3;
 
-void InitializeSwitchPins(void);
+void InitializePushButtonSwitchPins(void);
 
 #endif

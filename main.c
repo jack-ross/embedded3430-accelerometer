@@ -44,6 +44,9 @@ void main(void)
 	while(1) {
 		ManageSoftwareTimers();
 
+		if (Debouncer(&CalibrateButton) == true) {
+			// button was pushed
+		}
 	}
 }
 

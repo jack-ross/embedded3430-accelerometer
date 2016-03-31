@@ -1,5 +1,6 @@
 #include "debounce.h"
 #include "led.h"
+#include "globals.h"
 
 void InitializeSwitch(SwitchDefine *Switch,char *SwitchPort,unsigned char SwitchBit)
 {
@@ -8,7 +9,7 @@ void InitializeSwitch(SwitchDefine *Switch,char *SwitchPort,unsigned char Switch
 	Switch->SwitchPortBit = SwitchBit;
 }
 
-void InitializeSwitchPins(){
+void InitializePushButtonSwitchPins(){
 	//enable push button (p1.3) as output
 	P1DIR &= ~BIT3;
 	P1REN |= BIT3;
@@ -27,20 +28,14 @@ SwitchStatus GetSwitch(SwitchDefine *Switch)
 
 extern int g1msTimer;
 int startTime,stopTime, elapsedTime;
-/*LED codes
- * 	LED 1 = BIT0 | LED 2 = BIT1
- * 00 Exepect High
- * 01 Validate High
- * 10 Expect Low
- * 11 Validate Low
- *
- */
-SwitchStatus Debouncer(SwitchDefine *Switch)
+
+bool Debouncer(SwitchDefine *Switch)
 {
-	SwitchStatus CurrentSwitchReading = GetSwitch(Switch);
-	DbState NextState = DbExpectHigh;
-	
 	// First, determine the current inputs.
+	SwitchStatus CurrentSwitchReading = GetSwitch(Switch);
+	DbState NextState = DbExpectHigh;	
+
+	bool switchTriggered = false;
 
 	// Next, based on the input values and the current state, determine the next state.
 	switch (Switch->CurrentState) {
@@ -53,13 +48,9 @@ SwitchStatus Debouncer(SwitchDefine *Switch)
 			}
 			else
 				NextState = DbExpectHigh;
-			//TURN_OFF_LED1;
-			//TURN_OFF_LED2;
 		break;
 
 		case DbValidateHigh:
-//			TURN_OFF_LED1;
-//			TURN_ON_LED2;
 			if(CurrentSwitchReading == Low){
 				NextState = DbExpectHigh;
 			}
@@ -77,8 +68,11 @@ SwitchStatus Debouncer(SwitchDefine *Switch)
 			//we want to delay until the threshold
 			if(elapsedTime < HIGH_THRESHOLD)
 				NextState = DbValidateHigh;
-			else
+			else{
+				// state is definitely high
+				switchTriggered = true;
 				NextState = DbExpectLow;
+			}
 		break;
 
 		case DbExpectLow:
@@ -87,15 +81,11 @@ SwitchStatus Debouncer(SwitchDefine *Switch)
 			}
 			else
 				NextState = DbExpectLow;
-//			TURN_ON_LED1;
-//			TURN_OFF_LED2;
 			//record time so that it can be used in validation
 			startTime = g1msTimer;
 		break;
 
 		case DbValidateLow:
-//			TURN_ON_LED1;
-//			TURN_ON_LED2;
 			if(CurrentSwitchReading == High){
 				NextState = DbExpectLow;
 			}
@@ -110,21 +100,24 @@ SwitchStatus Debouncer(SwitchDefine *Switch)
 			//we want to delay until the threshold
 			if(elapsedTime < LOW_THRESHOLD)
 				NextState = DbValidateLow;
-			else
+			else {
+				// state is definitely Low
+				switchTriggered = false;
 				NextState = DbExpectHigh;
+			}
 		break;
 		default: NextState = DbExpectHigh;
 	}
 
 	// Perform the output function(s) based on the inputs and current state.
-	if(Switch->CurrentState ==  DbValidateHigh && (NextState == DbExpectLow) )
-		TOGGLE_LED1;
-	else if(Switch->CurrentState ==  DbValidateLow && (NextState == DbExpectHigh) )
-		TOGGLE_LED2;
+	// if(Switch->CurrentState ==  DbValidateHigh && (NextState == DbExpectLow) )
+	// 	TOGGLE_LED1;
+	// else if(Switch->CurrentState ==  DbValidateLow && (NextState == DbExpectHigh) )
+	// 	TOGGLE_LED2;
 
 	// Finally, update the current state with the next state.
 	Switch->CurrentState = NextState;
 	
-	return CurrentSwitchReading;
+	return switchTriggered;
 }
 
