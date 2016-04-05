@@ -1,5 +1,4 @@
 #include "ADC.h"
-#include "globals.h"
 #include "LED.h"
 
 unsigned int curAvg = 0;
@@ -17,7 +16,7 @@ void ConfigureADC(void)
 
 	int i,j;
 	for(i = 0; i<8;++i){
-			samples[i]= 0;
+		samples[i]= 0;
 	}
 }
 
@@ -69,13 +68,28 @@ __interrupt void ADC10_ISR (void)
  *
  * @param  analogInput : 0 -> Z, 1 -> Y, 2 -> X
  */
-int filter(int analogInput){
+int filter(Axis axis){
 
-	int i;
+	int i, axisMap;
 	int curSum =0, curAvg = -1;
 
+	//Map the Axis to the array value
+	switch(axis){
+		case Xaxis:
+			axisMap = 2;
+			break;
+
+		case Yaxis: 
+			axisMap = 1;
+			break;
+
+ 		case Zaxis:
+	 		axisMap = 1;
+			break;
+	}
+
 	for (i=0; i <8 ; ++i){
-		curSum+= samplesArray[i][analogInput];
+		curSum+= samplesArray[i][axisMap];
 	}
 
 	//divide by 8
@@ -83,8 +97,3 @@ int filter(int analogInput){
 
 	return curAvg;
 }
-
-
-
-
-
