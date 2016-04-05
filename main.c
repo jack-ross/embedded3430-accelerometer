@@ -101,10 +101,10 @@ void ManageSoftwareTimers(void)
 		g1msTimeout--;
 		g1msTimer++;
 		ledPWM();		
+		temp = getADCConversion(1);
 	}
 	
 	TOGGLE_LED2;
-	temp = getADCConversion(1);
 
 	//0.5 s interrupt | wrap around at 500
 	if(g1msTimer == 500){

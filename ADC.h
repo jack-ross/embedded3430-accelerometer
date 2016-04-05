@@ -17,7 +17,7 @@
 
 // Prototypes
 void ConfigureADC(void);
-void filter(int analogInput, unsigned int ADCVal);
-unsigned int getADCConversion(int analogInput);
+int filter(int analogInput);
+void getADCValues();
 
 #endif
