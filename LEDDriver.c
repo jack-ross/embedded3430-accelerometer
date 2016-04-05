@@ -39,6 +39,19 @@ void ConfigureLEDDisplay(void) {
 	}
 }
 
+void turnOffLEDs() {
+	int i;
+	for ( i = 0; i < 8; ++i)
+	{
+		LEDIntensities[i] = 0;
+	}
+}
+
+void turnOnLED(unsigned char LEDNumber) {
+	turnOffLEDs();
+	LEDIntensities[LEDNumber] = 20;
+}
+
 /** 
  *	Set LED Intensity
  *	
@@ -85,7 +98,7 @@ void ledPWM() {
 	{
 		if (pwmCurrentDivision < LEDIntensities[i])
 		{
-			data |= 0x1 << i;
+			data |= 0x1 << (7-i);
 		}
 	}
 

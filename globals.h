@@ -18,7 +18,10 @@ extern unsigned int pwmHex;
 #define ADC10_A0_BIT	BIT0	// Port pin bit location for X
 #define ADC10_A1_BIT	BIT1	// Port pin bit location for Y
 #define ADC10_A2_BIT	BIT2	// Port pin bit location for Z
-unsigned int samples[3][8];
+
+extern unsigned int samplesArray[8][3];
+
+//int curSampleIndex;
 
 //Accel
 extern int CoordinateX, CoordinateXMax, CoordinateXMin, CoordinateX0;

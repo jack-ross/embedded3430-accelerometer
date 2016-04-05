@@ -4,6 +4,8 @@
 
 unsigned int curAvg = 0;
 int curSampleIndex =0;
+unsigned int samples[3];
+
 //unsigned int ADCReading;
 
 void ConfigureADC(void)
@@ -12,6 +14,11 @@ void ConfigureADC(void)
 	ADC10CTL0 = ADC10SHT_2 + MSC + ADC10ON + ADC10IE;
 	ADC10AE0 = (BIT0 + BIT1 + BIT2);          // P1.0,1, 2 Analog enable
 	ADC10DTC1 = 0x03;                         // number of conversions
+
+	int i,j;
+	for(i = 0; i<8;++i){
+			samples[i]= 0;
+	}
 }
 
 /*
@@ -19,6 +26,7 @@ void ConfigureADC(void)
  * from the accelerometer
  *
  */
+
 void getADCValues(){
 
 	ADC10CTL0 &= ~ENC;
@@ -29,6 +37,16 @@ void getADCValues(){
 
     _NOP();                                 // space for debugger
     _NOP();                                 // Set Breakpoint here to read ADC
+
+    //We get one sample from each axis, load them into array
+    //equivalent to i = (i+1) % 8	
+	curSampleIndex = (curSampleIndex+1) & 0x7;
+
+	//0 -> Z, 1 -> Y, 2 -> X
+	samplesArray[curSampleIndex][0] = samples[0];
+	samplesArray[curSampleIndex][1] = samples[1];
+	samplesArray[curSampleIndex][2] = samples[2];
+
 
 	return ;
 }
@@ -52,11 +70,12 @@ __interrupt void ADC10_ISR (void)
  * @param  analogInput : 0 -> Z, 1 -> Y, 2 -> X
  */
 int filter(int analogInput){
+
 	int i;
 	int curSum =0, curAvg = -1;
 
 	for (i=0; i <8 ; ++i){
-		curSum+= samples[i][analogInput];
+		curSum+= samplesArray[i][analogInput];
 	}
 
 	//divide by 8
@@ -64,6 +83,8 @@ int filter(int analogInput){
 
 	return curAvg;
 }
+
+
 
 
 

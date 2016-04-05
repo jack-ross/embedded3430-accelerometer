@@ -10,11 +10,14 @@ void ConfigureClockModule();
 
 
 SwitchDefine CalibrateButton;
-//unsigned int g100nsTimeout;		// This variable is incremented by the interrupt handler and
-								// decremented by a software call in the main loop.
+bool isCalibrated;
 
 //changed to int to ease overflow calculations
 unsigned int g1msTimer;
+unsigned int samplesArray[8][3];
+int CoordinateX, CoordinateXMax, CoordinateXMin, CoordinateX0;
+int CoordinateY, CoordinateYMax, CoordinateYMin, CoordinateY0;
+int CoordinateZ, CoordinateZMax, CoordinateZMin, CoordinateZ0;
 
 // Function Prototypes
 void ConfigureClockModule();
@@ -45,9 +48,81 @@ void main(void)
 	while(1) {
 		ManageSoftwareTimers();
 
-		if (Debouncer(&CalibrateButton) == true) {
-			// button was pushed
+		if (isCalibrated == false)
+		{
+			Calibrate();
 		}
+	}
+}
+
+int calibrationStep = 0;
+void Calibrate() {
+
+	if (Debouncer(&CalibrateButton) == true) {
+		calibrationStep++;
+	}
+
+	turnOffLEDs();
+
+	switch(calibrationStep){
+		//+X
+		case 0:
+			//Turn on North LED
+			turnOnLED(0);
+			CoordinateXMax = filter(2);
+			break;
+
+		//-X
+		case 1:
+			//Turn on South LED
+			turnOnLED(4);
+			CoordinateXMin = filter(2);
+			break;
+
+		//+Y
+		case 2:
+			//Turn on West LED
+			turnOnLED(6);
+			CoordinateYMax = filter(1);
+			break;
+
+		//-Y
+		case 3:
+			//Turn on East LED
+			turnOnLED(2);
+			CoordinateYMin = filter(1);
+			break;
+
+		//+Z
+		case 4:
+			//Turn on N,S,E,W LEDS
+			setIntensity(0,20);
+			setIntensity(2,20);
+			setIntensity(4,20);
+			setIntensity(6,20);
+			CoordinateZMax = filter(0);
+			break;
+
+		//-Z
+		case 5:
+			//Turn on NE,SE,NW,SW LEDS
+			setIntensity(1,20);
+			setIntensity(3,20);
+			setIntensity(5,20);
+			setIntensity(7,20);
+			CoordinateZMin = filter(0);
+			break;
+	}
+
+	//We have calibrated all 3 directions, set the offsets
+	if(calibrationStep == 6){
+		isCalibrated = true;
+		/*
+		//These are offsets aka "zero" that will normalize the data for the cordic
+		//Do you add or subtract XMin
+		CoordinateX0 = CoordinateXMax + CoordinateXMin;
+
+		*/
 	}
 }
 
@@ -66,32 +141,15 @@ void InitializeGlobalVariables(void)
 	g1msTimer = 0;
 	InitializeSwitch(&CalibrateButton,(char *) &P1IN,(unsigned char) BIT3);
 
-	counter =0;
+	//curSampleIndex =0;
 
 	int i,j;
-	for(j = 0; j<3; ++j)
-		for(i = 0; i<8;++i)
-			samples[j][i] = 0;
+	for(i = 0; i<8;++i){
+		for(j = 0; j<3; ++j)
+			samplesArray[i][j] = 0;	
+	}
 }
 
-void accelerometerCheck() {
-	if(counter==8)
-		_nop();
-	else
-		++counter;
-
-	int temp;
-	//take sample
-	temp = getADCConversion(1);
-
-	//filter (also stores data)
-	filter(1, temp);
-
-	//enable conversion and start next conversion
-	ADC10CTL0 |= ENC | ADC10SC;
-}
-
-//unsigned int samples[3][8];
 unsigned int g2msTimer;
 void ManageSoftwareTimers(void)
 {
@@ -100,8 +158,8 @@ void ManageSoftwareTimers(void)
 	if(g1msTimeout != 0){
 		g1msTimeout--;
 		g1msTimer++;
-		ledPWM();		
-		temp = getADCConversion(1);
+		ledPWM();	
+		getADCValues();
 	}
 	
 	TOGGLE_LED2;
@@ -109,8 +167,9 @@ void ManageSoftwareTimers(void)
 	//0.5 s interrupt | wrap around at 500
 	if(g1msTimer == 500){
 		g1msTimer = 0;
-		//TOGGLE_LED2;
 	}
 
 }
+
+
 

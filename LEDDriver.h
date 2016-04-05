@@ -17,5 +17,7 @@
 void startLEDDisplay(void);
 void ledPWM();
 void setIntensity(unsigned char LEDNumber, unsigned char intensity);
+void turnOffLEDs();
+void turnOnLED(unsigned char LEDNumber);
 
 #endif /* LEDDRIVER_H_ */
